@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <title>Sort It Out — Recycling Guide</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@700;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --recycle-bg: #d4edd1;
+      --recycle-accent: #2a7a3b;
+      --recycle-card: #edf7ec;
+      --recycle-border: #5fbe74;
+      --landfill-bg: #e8ddd0;
+      --landfill-accent: #7a4a2a;
+      --landfill-card: #f5ede4;
+      --landfill-border: #c8956a;
+      --text-dark: #1a1a1a;
+      --text-mid: #444;
+      --header-h: 56px;
+      --tabs-h: 52px;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: 'DM Mono', monospace;
+      background: #1a1a1a;
+    }
+
+    /* ═══ HEADER ═══ */
+    header {
+      height: var(--header-h);
+      background: #1a1a1a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      padding: 0 16px;
+      padding-top: env(safe-area-inset-top);
+    }
+    header h1 {
+      font-family: 'Fraunces', serif;
+      font-weight: 900;
+      font-size: 1.35rem;
+      color: #fff;
+      letter-spacing: -0.02em;
+    }
+    header h1 span { color: #5fbe74; }
+    .header-badge {
+      font-size: 0.6rem;
+      background: #333;
+      color: #aaa;
+      padding: 3px 9px;
+      border-radius: 20px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    /* ═══ MOBILE TAB BAR ═══ */
+    .tab-bar {
+      display: none;
+      height: var(--tabs-h);
+      background: #111;
+      border-bottom: 2px solid #2a2a2a;
+    }
+    .tab-bar button {
+      flex: 1;
+      height: 100%;
+      background: none;
+      border: none;
+      border-bottom: 3px solid transparent;
+      margin-bottom: -2px;
+      font-family: 'Fraunces', serif;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #555;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      transition: color 0.2s, background 0.2s, border-color 0.2s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .tab-bar button.active-recycle {
+      color: var(--recycle-accent);
+      border-bottom-color: var(--recycle-border);
+      background: rgba(95,190,116,0.07);
+    }
+    .tab-bar button.active-landfill {
+      color: var(--landfill-accent);
+      border-bottom-color: var(--landfill-border);
+      background: rgba(200,149,106,0.07);
+    }
+    .tab-icon { font-size: 1.2rem; }
+
+    /* ═══ SPLIT / MAIN ═══ */
+    .split {
+      display: flex;
+      height: calc(100vh - var(--header-h));
+    }
+
+    .panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .panel-recycle { background: var(--recycle-bg); }
+    .panel-landfill { background: var(--landfill-bg); }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 16px 20px 12px;
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      border-bottom: 2px solid transparent;
+    }
+    .panel-recycle .panel-header { background: var(--recycle-bg); border-bottom-color: var(--recycle-border); }
+    .panel-landfill .panel-header { background: var(--landfill-bg); border-bottom-color: var(--landfill-border); }
+
+    .panel-icon { font-size: 1.8rem; line-height: 1; }
+    .panel-title {
+      font-family: 'Fraunces', serif;
+      font-weight: 900;
+      font-size: 1.2rem;
+      letter-spacing: -0.02em;
+      color: var(--text-dark);
+    }
+    .panel-subtitle {
+      font-size: 0.6rem;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      opacity: 0.55;
+      margin-top: 1px;
+    }
+
+    .panel-scroll {
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding: 16px 16px 48px;
+      flex: 1;
+    }
+    .panel-scroll::-webkit-scrollbar { width: 4px; }
+    .panel-recycle .panel-scroll::-webkit-scrollbar-thumb { background: var(--recycle-border); border-radius: 2px; }
+    .panel-landfill .panel-scroll::-webkit-scrollbar-thumb { background: var(--landfill-border); border-radius: 2px; }
+
+    /* ═══ DIVIDER (desktop) ═══ */
+    .divider {
+      width: 4px;
+      background: #1a1a1a;
+      flex-shrink: 0;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .divider-pill {
+      background: #1a1a1a;
+      color: #fff;
+      font-family: 'Fraunces', serif;
+      font-size: 0.65rem;
+      font-weight: 700;
+      writing-mode: vertical-rl;
+      letter-spacing: 0.15em;
+      padding: 12px 5px;
+      border-radius: 20px;
+      position: absolute;
+      white-space: nowrap;
+    }
+
+    /* ═══ CATEGORY LABEL ═══ */
+    .category-label {
+      font-size: 0.58rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      font-weight: 500;
+      margin: 18px 0 9px;
+      opacity: 0.5;
+    }
+    .category-label:first-child { margin-top: 0; }
+
+    /* ═══ CARDS ═══ */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .card {
+      border-radius: 12px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 6px;
+      border: 1.5px solid transparent;
+      transition: transform 0.18s ease, box-shadow 0.18s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+    @media (hover: hover) {
+      .card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.10); }
+    }
+    .card:active { transform: scale(0.97); }
+
+    .panel-recycle .card { background: var(--recycle-card); border-color: #b3ddb8; }
+    .panel-landfill .card { background: var(--landfill-card); border-color: #d8b89a; }
+
+    .card-emoji {
+      font-size: 1.8rem;
+      line-height: 1;
+      filter: drop-shadow(0 2px 3px rgba(0,0,0,0.1));
+    }
+    .card-name {
+      font-family: 'Fraunces', serif;
+      font-weight: 700;
+      font-size: 0.88rem;
+      color: var(--text-dark);
+      line-height: 1.2;
+    }
+    .card-tip {
+      font-size: 0.6rem;
+      line-height: 1.5;
+      color: var(--text-mid);
+      opacity: 0.8;
+    }
+    .card-badge {
+      font-size: 0.55rem;
+      color: #fff;
+      padding: 2px 7px;
+      border-radius: 20px;
+      margin-top: 1px;
+    }
+    .panel-recycle .card-badge { background: var(--recycle-accent); }
+    .panel-landfill .card-badge { background: var(--landfill-accent); }
+
+    /* ═══ TIP BOX ═══ */
+    .tip-box {
+      margin-top: 18px;
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-size: 0.63rem;
+      line-height: 1.75;
+    }
+    .panel-recycle .tip-box { background: #c0e6c4; border: 1.5px solid var(--recycle-border); color: var(--recycle-accent); }
+    .panel-landfill .tip-box { background: #e2c9b3; border: 1.5px solid var(--landfill-border); color: var(--landfill-accent); }
+    .tip-box strong {
+      display: block;
+      font-size: 0.63rem;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    /* ═══ FOOTER ═══ */
+    footer {
+      background: #1a1a1a;
+      color: #555;
+      text-align: center;
+      font-size: 0.55rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 7px 16px;
+      padding-bottom: calc(7px + env(safe-area-inset-bottom));
+    }
+
+    /* ═══ ANIMATIONS ═══ */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .card { animation: fadeUp 0.35s ease both; }
+    .cards-grid .card:nth-child(1) { animation-delay: 0.04s; }
+    .cards-grid .card:nth-child(2) { animation-delay: 0.08s; }
+    .cards-grid .card:nth-child(3) { animation-delay: 0.12s; }
+    .cards-grid .card:nth-child(4) { animation-delay: 0.16s; }
+    .cards-grid .card:nth-child(5) { animation-delay: 0.20s; }
+    .cards-grid .card:nth-child(6) { animation-delay: 0.24s; }
+    .cards-grid .card:nth-child(7) { animation-delay: 0.28s; }
+    .cards-grid .card:nth-child(8) { animation-delay: 0.32s; }
+    .cards-grid .card:nth-child(9) { animation-delay: 0.36s; }
+    .cards-grid .card:nth-child(10){ animation-delay: 0.40s; }
+
+    /* ═══ RESPONSIVE BREAKPOINTS ═══ */
+
+    /* — Mobile: ≤ 640px — */
+    @media (max-width: 640px) {
+      :root { --header-h: 50px; --tabs-h: 50px; }
+
+      /* compact header */
+      header { justify-content: space-between; }
+      header h1 { font-size: 1.15rem; }
+
+      /* show tab bar */
+      .tab-bar { display: flex; }
+
+      /* panels stack, show only active */
+      .split { flex-direction: column; height: auto; min-height: calc(100svh - var(--header-h) - var(--tabs-h) - 32px); }
+      .panel { display: none; flex: none; }
+      .panel.active { display: flex; }
+
+      /* hide desktop divider */
+      .divider { display: none; }
+
+      .panel-header { padding: 12px 14px 10px; }
+      .panel-scroll  { padding: 12px 12px 60px; }
+    }
+
+    /* Very small phones */
+    @media (max-width: 360px) {
+      .cards-grid { grid-template-columns: 1fr; }
+    }
+
+    /* — Tablet: 641px – 900px — */
+    @media (min-width: 641px) and (max-width: 900px) {
+      .cards-grid { grid-template-columns: 1fr; }
+      .panel-header { padding: 14px 16px 10px; }
+      .panel-scroll  { padding: 14px 14px 40px; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Sort It <span>Out</span></h1>
+    <div class="header-badge">♻ Waste Guide</div>
+  </header>
+
+  <!-- Mobile-only tab switcher -->
+  <nav class="tab-bar" role="tablist" aria-label="Choose bin">
+    <button id="tab-recycle" role="tab" aria-selected="true"  aria-controls="panel-recycle"
+            class="active-recycle" onclick="switchTab('recycle')">
+      <span class="tab-icon">♻️</span> Recycling
+    </button>
+    <button id="tab-landfill" role="tab" aria-selected="false" aria-controls="panel-landfill"
+            onclick="switchTab('landfill')">
+      <span class="tab-icon">🗑️</span> Landfill
+    </button>
+  </nav>
+
+  <div class="split">
+
+    <!-- ══ RECYCLE PANEL ══ -->
+    <div class="panel panel-recycle active" id="panel-recycle" role="tabpanel" aria-labelledby="tab-recycle">
+      <div class="panel-header">
+        <span class="panel-icon">♻️</span>
+        <div>
+          <div class="panel-title">Recycling Bin</div>
+          <div class="panel-subtitle">Clean · Dry · Loose</div>
+        </div>
+      </div>
+      <div class="panel-scroll">
+        <div class="category-label">📄 Paper & Cardboard</div>
+        <div class="cards-grid" id="recycle-paper"></div>
+
+        <div class="category-label">🥤 Plastics & Glass</div>
+        <div class="cards-grid" id="recycle-plastic"></div>
+
+        <div class="category-label">🥫 Metals</div>
+        <div class="cards-grid" id="recycle-metal"></div>
+
+        <div class="tip-box">
+          <strong>♻ Golden Rules</strong>
+          Always rinse containers before recycling. Remove lids and caps where possible. Break down cardboard boxes flat. Never bag your recyclables — loose items only in the bin.
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ DIVIDER (desktop) ══ -->
+    <div class="divider" aria-hidden="true">
+      <div class="divider-pill">VS</div>
+    </div>
+
+    <!-- ══ LANDFILL PANEL ══ -->
+    <div class="panel panel-landfill" id="panel-landfill" role="tabpanel" aria-labelledby="tab-landfill">
+      <div class="panel-header">
+        <span class="panel-icon">🗑️</span>
+        <div>
+          <div class="panel-title">Landfill Bin</div>
+          <div class="panel-subtitle">General · Non-recyclable</div>
+        </div>
+      </div>
+      <div class="panel-scroll">
+        <div class="category-label">🍕 Food & Organic Waste</div>
+        <div class="cards-grid" id="landfill-food"></div>
+
+        <div class="category-label">🧴 Plastics & Packaging</div>
+        <div class="cards-grid" id="landfill-plastic"></div>
+
+        <div class="category-label">🧹 Hygiene & Other</div>
+        <div class="cards-grid" id="landfill-hygiene"></div>
+
+        <div class="tip-box">
+          <strong>⚠ Heads Up</strong>
+          Hazardous items (batteries, electronics, paint, chemicals) must NEVER go in either bin — take them to a dedicated hazardous waste drop-off. Check your local council for collection days.
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <footer>Sort It Out · Know your waste · Reduce · Reuse · Recycle</footer>
+
+  <script>
+    const recycleData = {
+      paper: [
+        { emoji:"📰", name:"Newspapers",    tip:"Keep dry & flat",            badge:"✓ Always OK" },
+        { emoji:"📦", name:"Cardboard",     tip:"Flatten & remove tape",      badge:"✓ Always OK" },
+        { emoji:"📬", name:"Junk Mail",     tip:"Remove plastic windows",     badge:"✓ Always OK" },
+        { emoji:"📚", name:"Magazines",     tip:"Remove staples if possible", badge:"✓ Always OK" },
+        { emoji:"🛍️", name:"Paper Bags",   tip:"Remove plastic handles",     badge:"✓ Always OK" },
+        { emoji:"🗂️", name:"Office Paper", tip:"Shredded paper: bag it",     badge:"✓ Always OK" },
+      ],
+      plastic: [
+        { emoji:"🥤", name:"Plastic Bottles", tip:"Rinse & crush to save space", badge:"Types 1, 2, 5" },
+        { emoji:"🫙", name:"Glass Jars",      tip:"Rinse well, lids off",        badge:"✓ Always OK" },
+        { emoji:"🍾", name:"Glass Bottles",   tip:"No broken glass in bin",      badge:"✓ Always OK" },
+        { emoji:"🧴", name:"Shampoo Bottles", tip:"Empty & rinse first",         badge:"Type 2 HDPE" },
+      ],
+      metal: [
+        { emoji:"🥫", name:"Food Cans",      tip:"Rinse, leave lid attached", badge:"Steel & Tin" },
+        { emoji:"🍺", name:"Aluminium Cans", tip:"Crush to save space",       badge:"High value!" },
+        { emoji:"🫙", name:"Metal Lids",     tip:"From glass jars — yes!",   badge:"✓ OK" },
+        { emoji:"🍫", name:"Foil Trays",     tip:"Clean foil & trays only",  badge:"Clean only" },
+      ],
+    };
+
+    const landfillData = {
+      food: [
+        { emoji:"🍕", name:"Food Scraps",    tip:"Or compost if available",   badge:"General waste" },
+        { emoji:"🦴", name:"Meat & Bones",   tip:"Never in recycling",        badge:"General waste" },
+        { emoji:"☕", name:"Coffee Grounds", tip:"Or compost them!",          badge:"General waste" },
+        { emoji:"🥚", name:"Eggshells",      tip:"Great for compost too",     badge:"General waste" },
+      ],
+      plastic: [
+        { emoji:"🛍️", name:"Plastic Bags",        tip:"Supermarket drop-off instead", badge:"Not kerbside" },
+        { emoji:"🥡", name:"Takeaway Containers", tip:"Greasy plastic = landfill",    badge:"Contaminated" },
+        { emoji:"💊", name:"Blister Packs",        tip:"Mixed material = bin",         badge:"Not recyclable" },
+        { emoji:"🎈", name:"Polystyrene",          tip:"Foam cups & packaging",        badge:"Not recyclable" },
+        { emoji:"🧃", name:"Juice Cartons",        tip:"Multi-layer = landfill*",      badge:"Check locally" },
+        { emoji:"🍬", name:"Sweet Wrappers",       tip:"Foil-plastic mix = bin",       badge:"Not recyclable" },
+      ],
+      hygiene: [
+        { emoji:"🧻", name:"Tissues & Wipes", tip:"Used paper = landfill",              badge:"General waste" },
+        { emoji:"🩹", name:"Plasters",         tip:"Medical waste = bin",               badge:"General waste" },
+        { emoji:"👶", name:"Nappies/Diapers",  tip:"Never in recycling",               badge:"General waste" },
+        { emoji:"🪥", name:"Toothbrushes",     tip:"Some brands have take-back schemes",badge:"Generally bin" },
+      ],
+    };
+
+    function renderCards(id, items) {
+      document.getElementById(id).innerHTML = items.map(i => `
+        <div class="card">
+          <span class="card-emoji">${i.emoji}</span>
+          <span class="card-name">${i.name}</span>
+          <span class="card-tip">${i.tip}</span>
+          <span class="card-badge">${i.badge}</span>
+        </div>`).join('');
+    }
+
+    renderCards('recycle-paper',    recycleData.paper);
+    renderCards('recycle-plastic',  recycleData.plastic);
+    renderCards('recycle-metal',    recycleData.metal);
+    renderCards('landfill-food',    landfillData.food);
+    renderCards('landfill-plastic', landfillData.plastic);
+    renderCards('landfill-hygiene', landfillData.hygiene);
+
+    /* Mobile tab switcher */
+    function switchTab(tab) {
+      const isRecycle = tab === 'recycle';
+      document.getElementById('panel-recycle').classList.toggle('active', isRecycle);
+      document.getElementById('panel-landfill').classList.toggle('active', !isRecycle);
+      document.getElementById('tab-recycle').className  = isRecycle  ? 'active-recycle' : '';
+      document.getElementById('tab-landfill').className = !isRecycle ? 'active-landfill' : '';
+      document.getElementById('tab-recycle').setAttribute('aria-selected', isRecycle);
+      document.getElementById('tab-landfill').setAttribute('aria-selected', !isRecycle);
+      document.getElementById(`panel-${tab}`).querySelector('.panel-scroll').scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  </script>
+
+</body>
+</html>
